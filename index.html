@@ -703,6 +703,27 @@ button.lk{font:inherit;cursor:pointer;color:#fff}
  #sky,.glow{display:none}
 }
 
+
+/* ===== phone tilt (gyroscope) parallax ===== */
+.tiltbtn{position:fixed;z-index:56;left:calc(14px + env(safe-area-inset-left,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;height:44px;padding:0 14px 0 12px;border-radius:999px;font:600 13px/1 var(--f-body,inherit);color:#fff;background:rgba(9,24,48,.78);border:1px solid rgba(227,178,60,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;transition:padding .4s,gap .4s,background .3s;animation:iFade .8s 4.2s ease-out backwards}
+.tiltbtn svg{width:20px;height:20px;color:var(--gold);flex:0 0 20px}
+.tiltbtn.on svg{animation:tiltwig 2.4s ease-in-out infinite}
+@keyframes tiltwig{0%,100%{rotate:0deg}25%{rotate:-14deg}75%{rotate:14deg}}
+.tiltbtn.mini{padding:0 11px;gap:0}.tiltbtn.mini span{max-width:0;opacity:0}
+.tiltbtn span{display:inline-block;max-width:160px;overflow:hidden;white-space:nowrap;transition:max-width .4s,opacity .3s}
+.tiltbtn.off svg{color:var(--on-navy-dim)}
+#home{--tx:0;--ty:0}
+#home .hero-bg .blur{translate:calc(var(--tx) * -14px) calc(var(--ty) * -10px)}
+#home .hero-bg .main{translate:calc(var(--tx) * 7px) calc(var(--ty) * 5px)}
+#home .aura{translate:calc(var(--tx) * -26px) calc(var(--ty) * -18px)}
+#home .halo,#home .sonar{translate:calc(var(--tx) * 16px) calc(var(--ty) * 12px)}
+#home .scan{translate:calc(var(--tx) * 10px) 0}
+#home #cardL{translate:calc(var(--tx) * 16px) calc(var(--ty) * 10px)}
+#home #cardR{translate:calc(var(--tx) * 22px) calc(var(--ty) * 14px)}
+#home .name{translate:calc(var(--tx) * -9px) calc(var(--ty) * -6px)}
+#home .herocta{translate:calc(var(--tx) * -6px) calc(var(--ty) * -4px)}
+#home .rail{translate:calc(var(--tx) * -5px) 0}
+#home #sparks{translate:calc(var(--tx) * 20px) calc(var(--ty) * 14px)}
 /* ===== tighter rhythm between topics ===== */
 .zone{padding-block:clamp(36px,4.2vw,58px)}
 .globe-wrap{margin-top:30px}
@@ -1064,6 +1085,7 @@ button.lk{font:inherit;cursor:pointer;color:#fff}
 </main>
 </div>
 <div class="lb2" id="lb2" hidden><button class="lbx" id="lbx" type="button" aria-label="Close">×</button><button class="lbp" id="lbp" type="button" aria-label="Previous design">‹</button><figure><img id="lbimg" alt=""><figcaption id="lbcap"></figcaption></figure><button class="lbn" id="lbn" type="button" aria-label="Next design">›</button></div>
+<button class="tiltbtn" id="tiltbtn" type="button" hidden aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/><path d="M3 9c-1 2-1 4 0 6M21 9c1 2 1 4 0 6"/></svg><span id="tiltlbl">Tilt to explore</span></button>
 <button class="totop" id="totop" type="button" aria-label="Back to top"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="25" fill="none" stroke="rgba(227,178,60,.25)" stroke-width="2"/><circle id="toring" cx="27" cy="27" r="25" fill="none" stroke="#E3B23C" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1"/></svg><span>&uarr;</span></button>
 <script>
 (function(){
@@ -1131,6 +1153,36 @@ var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  var wrap=f.closest('.imap');if(wrap){wrap.addEventListener('transitionend',draw);setTimeout(draw,1500)}
 })();
 
+
+/* ===== phone tilt: gyroscope drives hero depth layers, the starry sky and the tool globe ===== */
+(function(){var btn=document.getElementById('tiltbtn'),lbl=document.getElementById('tiltlbl');if(!btn)return;
+ var touch=matchMedia('(hover: none) and (pointer: coarse)').matches,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(!touch||RM||!('DeviceOrientationEvent' in window))return;
+ var home=document.getElementById('home'),sky=document.getElementById('sky'),needAsk=typeof DeviceOrientationEvent.requestPermission==='function';
+ var on=false,got=false,bg=null,bb=null,tx=0,ty=0,cx=0,cy=0,raf=0,collapseT=0;
+ window.__tilt={x:0,y:0,on:false};
+ function read(e){if(e.gamma==null)return;got=true;var a=(screen.orientation&&screen.orientation.angle)||window.orientation||0,g=e.gamma,b=e.beta,x,y;
+  if(a===90){x=b;y=-g}else if(a===-90||a===270){x=-b;y=g}else{x=g;y=b}
+  if(bg===null){bg=x;bb=y}
+  bb+=(y-bb)*0.01;bg+=(x-bg)*0.004;
+  tx=Math.max(-1,Math.min(1,(x-bg)/22));ty=Math.max(-1,Math.min(1,(y-bb)/22))}
+ function frame(){if(!on){raf=0;return}
+  cx+=(tx-cx)*0.12;cy+=(ty-cy)*0.12;window.__tilt.x=cx;window.__tilt.y=cy;
+  if(home&&scrollY<innerHeight*1.3){home.style.setProperty('--tx',cx.toFixed(3));home.style.setProperty('--ty',cy.toFixed(3))}
+  if(sky)sky.style.translate=(cx*-18).toFixed(1)+'px '+(cy*-12).toFixed(1)+'px';
+  raf=requestAnimationFrame(frame)}
+ function show(t,mini){btn.hidden=false;lbl.textContent=t;btn.classList.toggle('mini',!!mini);clearTimeout(collapseT);if(!mini)collapseT=setTimeout(function(){btn.classList.add('mini')},2600)}
+ function start(){on=true;window.__tilt.on=true;bg=null;btn.classList.add('on');btn.classList.remove('off');btn.setAttribute('aria-pressed','true');addEventListener('deviceorientation',read);if(!raf)raf=requestAnimationFrame(frame);show('Tilt on')}
+ function stop(){on=false;window.__tilt.on=false;window.__tilt.x=window.__tilt.y=0;removeEventListener('deviceorientation',read);btn.classList.remove('on');btn.classList.add('off');btn.setAttribute('aria-pressed','false');
+  if(home){home.style.setProperty('--tx',0);home.style.setProperty('--ty',0)}if(sky)sky.style.translate='';show('Tilt off')}
+ btn.addEventListener('click',function(){
+  if(on){stop();return}
+  if(needAsk){DeviceOrientationEvent.requestPermission().then(function(r){if(r==='granted')start();else show('Tilt blocked',false)}).catch(function(){show('Tilt blocked',false)})}
+  else start()});
+ if(needAsk){DeviceOrientationEvent.requestPermission().then(function(r){if(r==='granted'){start();setTimeout(function(){if(!got){stop();btn.hidden=true}},2500)}else{show('Tilt to explore');clearTimeout(collapseT)}}).catch(function(){show('Tilt to explore');clearTimeout(collapseT)})}
+ else{start();setTimeout(function(){if(!got){stop();btn.hidden=true}},2500)}
+})();
+
 /* ===== neural tool globes: rotating sphere of tools linked like neurons; drag to spin, hover to light up, legend filters ===== */
 (function(){var reduceG=matchMedia('(prefers-reduced-motion: reduce)').matches,COL={a:[227,178,60],d:[127,178,255],g:[242,160,123]};
 [].forEach.call(document.querySelectorAll('.globe'),function(el){
@@ -1171,7 +1223,7 @@ var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
    s.style.transform='translate('+q[0].toFixed(1)+'px,'+q[1].toFixed(1)+'px) translate(-50%,-50%) scale('+(.6+.45*d*q[3]/1.1).toFixed(3)+')';
    s.style.opacity=op.toFixed(2);s.style.pointerEvents=op<.25?'none':'auto';s.style.zIndex=Math.round(d*100)+(i===hov?200:0);s.classList.toggle('on',i===hov);s.classList.toggle('nb',!!nbr[i])});
  }
- function loop(now){if(!run)return;if(!drag){if(hov<0){ay+=vy;ax+=vx}vy+=(base-vy)*.02;vx*=.95;ax+=(-.3-ax)*.01}draw(now);requestAnimationFrame(loop)}
+ function loop(now){if(!run)return;var T=window.__tilt;if(!drag){if(hov<0){ay+=vy+(T&&T.on?T.x*.02:0);ax+=vx}vy+=(base-vy)*.02;vx*=.95;ax+=((T&&T.on?-.3+T.y*.7:-.3)-ax)*.04}draw(now);requestAnimationFrame(loop)}
  el.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY};el.classList.add('drag');try{el.setPointerCapture(e.pointerId)}catch(_){}});
  el.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;ay+=dx*.005;ax+=dy*.005;ax=Math.max(-1.2,Math.min(1.2,ax));vy=dx*.001;vx=dy*.0007;drag.x=e.clientX;drag.y=e.clientY;if(reduceG)draw(0)});
  function up(){drag=null;el.classList.remove('drag')}el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
