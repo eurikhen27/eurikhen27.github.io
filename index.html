@@ -279,7 +279,8 @@ h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0}
 .mlines .fw{fill:none;stroke:rgba(227,178,60,.75);stroke-width:1.6;stroke-dasharray:6 6;animation:mdash 1.2s linear infinite}
 .mlines .lp{fill:none;stroke:rgba(143,180,232,.8);stroke-width:1.4;stroke-dasharray:2 6;stroke-linecap:round;animation:mdash 1.6s linear infinite}
 @keyframes mdash{to{stroke-dashoffset:-24}}
-.mlines text{font:600 11.5px var(--f-mono);fill:#B9D0F2;letter-spacing:.03em;paint-order:stroke;stroke:#06122A;stroke-width:6px;stroke-linejoin:round}
+.mlines text{font:600 11.5px var(--f-mono);fill:#CFE0FA;letter-spacing:.03em;stroke:none}
+.mlines .mlab{fill:#0A1A36;stroke:rgba(143,180,232,.45);stroke-width:1}
 .mlines .run{fill:#FFF3C4;filter:drop-shadow(0 0 6px #E3B23C)}
 .mkey{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin-top:44px;font:12px var(--f-mono);letter-spacing:.06em;color:var(--on-navy-dim)}
 .mkey span{display:flex;align-items:center;gap:10px}.mkey i{width:34px;height:0;border-top:2px dashed rgba(227,178,60,.8)}.mkey i.k2{border-top:2px dotted rgba(143,180,232,.9)}
@@ -1092,7 +1093,9 @@ var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
    else if(k==='T'){var y=a.cy-a.rad-62;p='M'+a.cx+' '+(a.cy-a.rad-8)+'C'+a.cx+' '+y+' '+b.cx+' '+y+' '+b.cx+' '+(b.cy-b.rad-14);tx=(a.cx+b.cx)/2;ty=y+10}
    else{var gy=(N[3].bot+N[4].top)/2+6,bx2=b.cx-46;p='M'+a.cx+' '+(a.cy-a.rad-8)+'C'+a.cx+' '+gy+' '+bx2+' '+gy+' '+bx2+' '+(b.bot+12);tx=(a.cx+bx2)/2;ty=gy-6}
    el('path',{d:p,'class':'lp','marker-end':'url(#mab)'});
-   el('text',{x:tx,y:ty,'text-anchor':'middle','dominant-baseline':'middle',transform:rot?'rotate('+rot+' '+tx+' '+ty+')':''},e[2]);
+   var tf=rot?'rotate('+rot+' '+tx+' '+ty+')':'';var bg=el('rect',{'class':'mlab',rx:9,ry:9});if(tf)bg.setAttribute('transform',tf);
+   var tt=el('text',{x:tx,y:ty,'text-anchor':'middle','dominant-baseline':'central',transform:tf},e[2]);
+   try{var bb=tt.getBBox();bg.setAttribute('x',bb.x-8);bg.setAttribute('y',bb.y-3);bg.setAttribute('width',bb.width+16);bg.setAttribute('height',bb.height+6)}catch(_){}
   });
  }
  draw();if(window.ResizeObserver)new ResizeObserver(draw).observe(f);else addEventListener('resize',draw);if(document.fonts)document.fonts.ready.then(draw);
